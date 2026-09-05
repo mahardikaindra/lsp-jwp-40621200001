@@ -162,10 +162,10 @@ $tasks = getTasks();
     <title>Aplikasi To-Do List</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-[#e8f1ff] px-3 py-6 text-slate-900 sm:px-6 sm:py-10">
+<body class="min-h-screen bg-[#e8f1ff] text-slate-900">
 
-    <main class="mx-auto w-full max-w-2xl">
-        <section class="overflow-hidden rounded-2xl bg-white shadow-xl shadow-[#0f172a]/10 ring-1 ring-[#dbeafe]">
+    <main class="min-h-screen w-full">
+        <section class="min-h-screen w-full overflow-hidden bg-white shadow-xl shadow-[#0f172a]/10 ring-1 ring-[#dbeafe]">
             <div class="bg-[#0f172a] px-4 py-6 text-white sm:px-8 sm:py-8">
                 <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#fbbf24] sm:text-sm">LSP Certificate - Web Development</p>
                 <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Task: To-Do List</h1>
@@ -192,7 +192,7 @@ $tasks = getTasks();
                 </div>
             </div>
 
-            <div class="p-4 sm:p-8">
+            <div class="mx-auto w-full max-w-6xl p-4 sm:p-8 lg:p-10">
 
                 <!-- Form Tambah Tugas Baru -->
                 <form method="POST" class="mb-6">
