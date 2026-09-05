@@ -1,4 +1,11 @@
 <?php
+// Redirect hanya saat index.php diakses langsung, bukan saat /todolist diproses.
+$requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if ($requestPath === '/index.php') {
+    header('Location: /todolist', true, 302);
+    exit;
+}
+
 // Memulai sesi untuk menyimpan data array agar tidak hilang saat halaman direfresh
 session_start();
 
@@ -139,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
     
     // Redirect ke halaman utama untuk mencegah "Form Resubmission" saat user menekan refresh (F5)
-    header("Location: index.php");
+    header("Location: /todolist");
     exit;
 }
 
@@ -160,9 +167,9 @@ $tasks = getTasks();
     <main class="mx-auto w-full max-w-2xl">
         <section class="overflow-hidden rounded-2xl bg-white shadow-xl shadow-[#0f172a]/10 ring-1 ring-[#dbeafe]">
             <div class="bg-[#0f172a] px-4 py-6 text-white sm:px-8 sm:py-8">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#fbbf24] sm:text-sm">Produktivitas harian</p>
-                <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">To-Do List</h1>
-                <p class="mt-2 text-xs text-slate-300 sm:text-sm">Atur tugas, tandai yang selesai, dan tetap fokus.</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#fbbf24] sm:text-sm">LSP Certificate - Web Development</p>
+                <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Task: To-Do List</h1>
+                <p class="mt-2 text-xs text-slate-300 sm:text-sm">Buat tugas baru dan kelola daftar tugas Anda.</p>
                 <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div class="rounded-xl border border-white/10 bg-white/10 px-3 py-3">
                         <p class="text-xs text-slate-300">Belum selesai</p>
@@ -253,7 +260,7 @@ $tasks = getTasks();
                         <?php endforeach; ?>
                     <?php else: ?>
                         <!-- Feedback UI jika array kosong -->
-                        <li class="px-4 py-8 text-center text-sm text-slate-500">Belum ada tugas. Yay!</li>
+                        <li class="px-4 py-8 text-center text-sm text-slate-500">Belum ada tugas. Silakan tambahkan tugas baru.</li>
                     <?php endif; ?>
                 </ul>
 
