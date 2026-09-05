@@ -40,6 +40,25 @@ function addTask($title) {
 }
 
 /**
+ * Mengubah judul tugas berdasarkan ID.
+ */
+function editTask($id, $title) {
+    $title = trim($title);
+
+    if ($title === '') {
+        return;
+    }
+
+    foreach ($_SESSION['tasks'] as &$task) {
+        if ($task['id'] == $id) {
+            $task['title'] = htmlspecialchars($title);
+            break;
+        }
+    }
+    unset($task);
+}
+
+/**
  * Mengubah status tugas (belum -> selesai, selesai -> belum).
  */
 function toggleTask($id) {
@@ -95,7 +114,8 @@ function completeSelectedTasks($ids) {
  */
 function renderIcon($name) {
     $icons = [
-        'plus' => '<path d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1Z" />',
+        'plus' => '<path d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 0 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1Z" />',
+        'edit' => '<path d="m14.7 3.3 2 2a1 1 0 0 1 0 1.4l-9 9a1 1 0 0 1-.55.28l-3 .5a1 1 0 0 1-1.14-1.14l.5-3a1 1 0 0 1 .28-.55l9-9a1 1 0 0 1 1.4 0ZM5.4 13.4l-.2 1.2 1.2-.2L14.6 6.2l-1-1-8.2 8.2Z" />',
         'trash' => '<path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h5A1.5 1.5 0 0 1 14 4.5V5h1.5a1 1 0 1 1 0 2h-.7l-.68 9.11A2.5 2.5 0 0 1 11.63 18H8.37a2.5 2.5 0 0 1-2.49-2.89L5.2 7H4.5a1 1 0 0 1 0-2H6v-.5Zm2 2.5h4L11.8 15H8.2L8 7Zm1.5-2v.5h3v-.5a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 0-.5.5Z" />',
         'check' => '<path fill-rule="evenodd" d="M16.700 5.300a1 1 0 0 1 0 1.400l-7 7a1 1 0 0 1-1.400 0l-3-3a1 1 0 1 1 1.400-1.400L9 11.600l6.300-6.300a1 1 0 0 1 1.400 0Z" clip-rule="evenodd" />',
     ];
@@ -121,6 +141,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'add':
             if (isset($_POST['title']) && trim($_POST['title']) !== '') {
                 addTask($_POST['title']);
+            }
+            break;
+        case 'edit':
+            if (isset($_POST['id'], $_POST['title'])) {
+                editTask($_POST['id'], $_POST['title']);
             }
             break;
         case 'toggle':
@@ -231,10 +256,16 @@ $tasks = getTasks();
                                     <span class="min-w-0 break-words text-sm <?= $task['status'] === 'selesai' ? 'text-slate-400 line-through' : 'text-[#0f172a]' ?>">
                                         <?= $task['title'] ?>
                                     </span>
+
                                 </div>
 
                                 <!-- Bagian Kanan: Action Selesaikan dan Hapus -->
                                 <div class="flex w-full gap-2 sm:w-auto sm:shrink-0">
+                                    <button type="button" data-edit-dialog="edit-task-<?= (int) $task['id'] ?>" class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[#bfdbfe] bg-[#eff6ff] px-3 py-2 text-sm font-medium text-[#1d4ed8] transition hover:bg-[#dbeafe] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] sm:flex-none" title="Edit tugas">
+                                        <?= renderIcon('edit') ?>
+                                        <span>Edit</span>
+                                    </button>
+
                                     <form method="POST" class="flex-1 sm:flex-none">
                                         <input type="hidden" name="action" value="toggle">
                                         <input type="hidden" name="id" value="<?= (int) $task['id'] ?>">
@@ -255,6 +286,20 @@ $tasks = getTasks();
                                         <?= renderActionButton('Hapus', 'trash', 'inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#fed7aa] bg-[#fff7ed] px-3 py-2 text-sm font-medium text-[#c2410c] transition hover:bg-[#ffedd5] hover:text-[#9a4d12] focus:outline-none focus:ring-2 focus:ring-[#fdba74] focus:ring-offset-2', 'Hapus tugas') ?>
                                     </form>
                                 </div>
+
+                                <dialog id="edit-task-<?= (int) $task['id'] ?>" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl border border-[#dbeafe] bg-white p-0 text-[#0f172a] shadow-2xl backdrop:bg-[#0f172a]/60">
+                                    <form method="POST" class="p-5 sm:p-6">
+                                        <input type="hidden" name="action" value="edit">
+                                        <input type="hidden" name="id" value="<?= (int) $task['id'] ?>">
+                                        <h2 class="text-lg font-bold">Edit tugas</h2>
+                                        <label for="edit-title-<?= (int) $task['id'] ?>" class="mt-4 block text-sm font-semibold">Judul tugas</label>
+                                        <input id="edit-title-<?= (int) $task['id'] ?>" type="text" name="title" value="<?= htmlspecialchars(htmlspecialchars_decode($task['title']), ENT_QUOTES, 'UTF-8') ?>" class="mt-2 w-full rounded-md border border-[#c7d2fe] bg-[#f8fbff] px-3 py-2.5 text-sm outline-none focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#bfdbfe]" required autocomplete="off">
+                                        <div class="mt-5 flex justify-end gap-2">
+                                            <button type="button" data-close-dialog class="rounded-md border border-[#cbd5e1] px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">Batal</button>
+                                            <button type="submit" class="rounded-md bg-[#1d4ed8] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1e40af] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] focus:ring-offset-2">Simpan</button>
+                                        </div>
+                                    </form>
+                                </dialog>
                                 
                             </li>
                         <?php endforeach; ?>
@@ -313,6 +358,24 @@ $tasks = getTasks();
 
         taskSelections.forEach((checkbox) => {
             checkbox.addEventListener('change', updateSelectionState);
+        });
+
+        document.querySelectorAll('[data-edit-dialog]').forEach((button) => {
+            const dialog = document.getElementById(button.dataset.editDialog);
+
+            button.addEventListener('click', () => {
+                dialog.showModal();
+            });
+
+            dialog.querySelector('[data-close-dialog]').addEventListener('click', () => {
+                dialog.close();
+            });
+
+            dialog.addEventListener('click', (event) => {
+                if (event.target === dialog) {
+                    dialog.close();
+                }
+            });
         });
 
         updateSelectionState();
