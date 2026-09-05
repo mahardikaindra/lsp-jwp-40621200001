@@ -2,37 +2,117 @@
 
 ## Deskripsi
 
-Aplikasi sederhana berbasis PHP untuk mencatat tugas harian. Aplikasi ini dibangun dengan mengimplementasikan prinsip pemrograman prosedural terstruktur, memanfaatkan $_SESSION untuk manajemen data (state management) sementara, dan framework Bootstrap 5 untuk tampilan antarmuka yang responsif dan estetis.
+Aplikasi To-Do List sederhana berbasis PHP dengan pemrograman prosedural dan `$_SESSION` sebagai penyimpanan data sementara. Tampilan dibuat responsif menggunakan Tailwind CSS melalui CDN, dengan palet warna biru dongker dan orange.
+
+Data tugas tersimpan selama session browser aktif. Data dapat kembali ke kondisi awal setelah session berakhir atau session dihapus.
 
 ## Fitur
 
-* Tambah tugas: Menambahkan catatan tugas baru ke dalam daftar.
+- Menambahkan tugas baru.
+- Validasi input: tombol **Tambah** disabled jika input kosong atau hanya berisi spasi.
+- Menandai tugas sebagai selesai atau belum selesai.
+- Menampilkan judul tugas selesai dengan coretan.
+- Memilih satu tugas atau memilih semua tugas menggunakan checkbox.
+- Membatalkan semua pilihan dengan tombol **Batal pilih**.
+- Menyelesaikan beberapa tugas sekaligus melalui **Selesaikan terpilih**.
+- Menghapus satu tugas melalui tombol **Hapus**.
+- Menghapus beberapa tugas sekaligus melalui **Hapus terpilih**.
+- Menampilkan jumlah tugas belum selesai, selesai, dan total tugas.
+- URL aplikasi menggunakan path `/todolist`.
 
-* Tandai tugas selesai: Menyelesaikan tugas melalui interaksi fitur checkbox.
+## Struktur Folder
 
-* Hapus tugas: Menghapus tugas yang sudah tidak relevan dari daftar.
+```text
+.
+├── index.php    # Logika PHP, tampilan HTML, dan JavaScript aplikasi
+└── README.md    # Dokumentasi proyek
+```
 
-# #Struktur Folder
+Aplikasi menggunakan konsep single-file sehingga tidak memerlukan folder asset tambahan. Tailwind CSS dimuat dari CDN.
 
-index.php - Halaman utama dan core logika aplikasi (HTML, CSS, PHP).
+## Prasyarat
 
-(Karena aplikasi ini dikemas secara efisien dalam konsep single-file logic-view, maka semua script digabung di dalam index.php. Tidak memerlukan folder assets tambahan karena CSS/JS menggunakan CDN Bootstrap).
+- PHP 7.4 atau lebih baru.
+- Browser modern seperti Chrome, Firefox, Edge, atau Safari.
+- Koneksi internet untuk memuat Tailwind CSS dari CDN.
 
-## Cara Menjalankan
+## Cara Menjalankan dengan PHP Built-in Server
 
-* Pastikan PHP telah terinstal dan dapat dijalankan melalui terminal.
+Cara ini cocok untuk environment seperti terminal VS Code.
 
-* Buka terminal pada direktori proyek ini.
-
-* Jalankan server lokal dengan perintah berikut:
+1. Buka terminal pada folder proyek:
 
 	```bash
-	php -S localhost:8000
+	cd /Users/entrustinv154/Office/lsp
 	```
 
-* Buka browser (Chrome/Firefox).
+2. Jalankan server menggunakan `index.php` sebagai router:
 
-* Akses URL: http://localhost:8000
+	```bash
+	php -S localhost:8000 index.php
+	```
+
+3. Buka URL berikut di browser:
+
+	```text
+	http://localhost:8000/todolist
+	```
+
+4. Tekan `Ctrl+C` atau `Cmd+C` di terminal untuk menghentikan server.
+
+> Jangan menjalankan `php -S localhost:8000` tanpa `index.php` jika ingin menggunakan route `/todolist`.
+
+## Cara Menjalankan dengan XAMPP
+
+1. Pastikan Apache pada XAMPP sudah berjalan.
+
+2. Salin folder proyek ke document root XAMPP:
+
+	**macOS**
+
+	```text
+	/Applications/XAMPP/htdocs/todolist
+	```
+
+	**Windows**
+
+	```text
+	C:\xampp\htdocs\todolist
+	```
+
+3. Pastikan file berada di:
+
+	```text
+	/Applications/XAMPP/htdocs/todolist/index.php
+	```
+
+	atau pada Windows:
+
+	```text
+	C:\xampp\htdocs\todolist\index.php
+	```
+
+4. Buka URL berikut:
+
+	```text
+	http://localhost/todolist
+	```
+
+5. Jika Apache menggunakan port selain `80`, tambahkan port tersebut, misalnya:
+
+	```text
+	http://localhost:8080/todolist
+	```
+
+## Catatan Routing
+
+`index.php` mengarahkan akses langsung ke `/index.php` menuju `/todolist`. Karena itu, folder aplikasi sebaiknya diberi nama `todolist` dan diletakkan langsung di document root XAMPP (`htdocs`).
+
+Untuk PHP built-in server, `index.php` harus diberikan sebagai router:
+
+```bash
+php -S localhost:8000 index.php
+```
 
 ## Kontributor
 
