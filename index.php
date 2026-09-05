@@ -72,12 +72,47 @@ function deleteSelectedTasks($ids) {
     ));
 }
 
-// Menangkap request POST dari form untuk eksekusi aksi (Tambah/Ubah Status/Hapus)
+function completeSelectedTasks($ids) {
+    $selectedIds = array_map('intval', (array) $ids);
+
+    foreach ($_SESSION['tasks'] as &$task) {
+        if (in_array((int) $task['id'], $selectedIds, true)) {
+            $task['status'] = 'selesai';
+        }
+    }
+    unset($task);
+}
+
+/**
+ * Fungsi untuk merender ikon SVG berdasarkan nama ikon
+ */
+function renderIcon($name) {
+    $icons = [
+        'plus' => '<path d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1Z" />',
+        'trash' => '<path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h5A1.5 1.5 0 0 1 14 4.5V5h1.5a1 1 0 1 1 0 2h-.7l-.68 9.11A2.5 2.5 0 0 1 11.63 18H8.37a2.5 2.5 0 0 1-2.49-2.89L5.2 7H4.5a1 1 0 0 1 0-2H6v-.5Zm2 2.5h4L11.8 15H8.2L8 7Zm1.5-2v.5h3v-.5a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 0-.5.5Z" />',
+        'check' => '<path fill-rule="evenodd" d="M16.700 5.300a1 1 0 0 1 0 1.400l-7 7a1 1 0 0 1-1.400 0l-3-3a1 1 0 1 1 1.400-1.400L9 11.600l6.300-6.300a1 1 0 0 1 1.400 0Z" clip-rule="evenodd" />',
+    ];
+
+    return '<svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">' . ($icons[$name] ?? '') . '</svg>';
+}
+
+/**
+ * Fungsi untuk merender tombol aksi dengan ikon dan label
+ */
+function renderActionButton($label, $icon, $classes, $title, $type = 'submit', $id = '', $name = '', $value = '') {
+    $idAttribute = $id === '' ? '' : ' id="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '"';
+    $nameAttribute = $name === '' ? '' : ' name="' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '"';
+    $valueAttribute = $value === '' ? '' : ' value="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
+
+    return '<button' . $idAttribute . $nameAttribute . $valueAttribute . ' type="' . $type . '" class="' . $classes . '" title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '">' . renderIcon($icon) . '<span>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span></button>';
+}
+
+// Menangkap request POST dari form untuk eksekusi aksi (Tambah/Ubah Status/Hapus/Hapus Terpilih)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     
     switch ($_POST['action']) {
         case 'add':
-            if (!empty($_POST['title'])) {
+            if (isset($_POST['title']) && trim($_POST['title']) !== '') {
                 addTask($_POST['title']);
             }
             break;
@@ -94,6 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'delete_selected':
             if (!empty($_POST['selected_ids'])) {
                 deleteSelectedTasks($_POST['selected_ids']);
+            }
+            break;
+        case 'complete_selected':
+            if (!empty($_POST['selected_ids'])) {
+                completeSelectedTasks($_POST['selected_ids']);
             }
             break;
     }
@@ -153,29 +193,21 @@ $tasks = getTasks();
                     <label for="title" class="mb-2 block text-sm font-semibold text-[#0f172a]">Tugas baru</label>
                     <div class="flex flex-col gap-3 sm:flex-row">
                         <input id="title" type="text" name="title" class="min-w-0 flex-1 rounded-lg border border-[#c7d2fe] bg-[#f8fbff] px-4 py-3 text-sm text-[#0f172a] outline-none transition placeholder:text-slate-400 focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#bfdbfe]" placeholder="Tambahkan tugas baru..." required autocomplete="off">
-                        <button class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f97316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#fdba74] focus:ring-offset-2 sm:w-auto" type="submit" title="Tambah tugas">
-                            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">
-                                <path d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1Z" />
-                            </svg>
-                            <span>Tambah</span>
-                        </button>
+                        <?= renderActionButton('Tambah', 'plus', 'add-task-button inline-flex items-center justify-center gap-2 rounded-lg bg-[#f97316] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#ea580c] focus:outline-none focus:ring-2 focus:ring-[#fdba74] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto', 'Tambah tugas', 'submit', 'add-task-button') ?>
                     </div>
                 </form>
 
                 <!-- Aksi massal -->
                 <form id="bulk-delete-form" method="POST" class="mb-4 flex flex-col gap-3 rounded-xl border border-[#dbeafe] bg-[#f8fbff] p-3 sm:flex-row sm:items-center sm:justify-between">
-                    <input type="hidden" name="action" value="delete_selected">
                     <div class="flex items-center gap-3">
                         <input id="select-all" type="checkbox" class="h-5 w-5 cursor-pointer rounded border-[#93c5fd] text-[#1d4ed8] focus:ring-[#93c5fd]">
                         <label for="select-all" class="text-sm font-semibold text-[#0f172a]">Pilih semua</label>
                         <button id="clear-selection" type="button" class="text-sm font-medium text-[#1d4ed8] underline-offset-2 hover:underline">Batal pilih</button>
                     </div>
-                    <button id="delete-selected" type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0f172a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1e3a8a] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] focus:ring-offset-2 sm:w-auto" title="Hapus tugas terpilih">
-                        <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">
-                            <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h5A1.5 1.5 0 0 1 14 4.5V5h1.5a1 1 0 1 1 0 2h-.7l-.68 9.11A2.5 2.5 0 0 1 11.63 18H8.37a2.5 2.5 0 0 1-2.49-2.89L5.2 7H4.5a1 1 0 0 1 0-2H6v-.5Zm2 2.5h4L11.8 15H8.2L8 7Zm1.5-2v.5h3v-.5a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 0-.5.5Z" />
-                        </svg>
-                        <span>Hapus terpilih</span>
-                    </button>
+                    <div class="flex w-full gap-2 sm:w-auto">
+                        <?= renderActionButton('Selesaikan terpilih', 'check', 'bulk-action-button inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#1d4ed8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1e40af] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] focus:ring-offset-2 sm:flex-none', 'Selesaikan tugas terpilih', 'submit', 'complete-selected', 'action', 'complete_selected') ?>
+                        <?= renderActionButton('Hapus terpilih', 'trash', 'bulk-action-button inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#0f172a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1e3a8a] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] focus:ring-offset-2 sm:flex-none', 'Hapus tugas terpilih', 'submit', 'delete-selected', 'action', 'delete_selected') ?>
+                    </div>
                 </form>
 
                 <!-- Daftar Tugas -->
@@ -213,12 +245,7 @@ $tasks = getTasks();
                                     <form method="POST" class="flex-1 sm:flex-none">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?= (int) $task['id'] ?>">
-                                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#fed7aa] bg-[#fff7ed] px-3 py-2 text-sm font-medium text-[#c2410c] transition hover:bg-[#ffedd5] hover:text-[#9a4d12] focus:outline-none focus:ring-2 focus:ring-[#fdba74] focus:ring-offset-2" title="Hapus Tugas">
-                                            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">
-                                                <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h5A1.5 1.5 0 0 1 14 4.5V5h1.5a1 1 0 1 1 0 2h-.7l-.68 9.11A2.5 2.5 0 0 1 11.63 18H8.37a2.5 2.5 0 0 1-2.49-2.89L5.2 7H4.5a1 1 0 0 1 0-2H6v-.5Zm2 2.5h4L11.8 15H8.2L8 7Zm1.5-2v.5h3v-.5a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 0-.5.5Z" />
-                                            </svg>
-                                            <span>Hapus</span>
-                                        </button>
+                                        <?= renderActionButton('Hapus', 'trash', 'inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#fed7aa] bg-[#fff7ed] px-3 py-2 text-sm font-medium text-[#c2410c] transition hover:bg-[#ffedd5] hover:text-[#9a4d12] focus:outline-none focus:ring-2 focus:ring-[#fdba74] focus:ring-offset-2', 'Hapus tugas') ?>
                                     </form>
                                 </div>
                                 
@@ -238,18 +265,29 @@ $tasks = getTasks();
         </footer>
     </main>
     <script>
+        const titleInput = document.getElementById('title');
+        const addTaskButton = document.getElementById('add-task-button');
         const selectAll = document.getElementById('select-all');
         const clearSelection = document.getElementById('clear-selection');
-        const deleteSelected = document.getElementById('delete-selected');
+        const bulkActionButtons = Array.from(document.querySelectorAll('.bulk-action-button'));
         const taskSelections = Array.from(document.querySelectorAll('.task-selection'));
+
+        const updateAddButtonState = () => {
+            addTaskButton.disabled = titleInput.value.trim() === '';
+        };
+
+        titleInput.addEventListener('input', updateAddButtonState);
+        updateAddButtonState();
 
         const updateSelectionState = () => {
             const selectedCount = taskSelections.filter((checkbox) => checkbox.checked).length;
             selectAll.checked = taskSelections.length > 0 && selectedCount === taskSelections.length;
             selectAll.indeterminate = selectedCount > 0 && selectedCount < taskSelections.length;
-            deleteSelected.disabled = selectedCount === 0;
-            deleteSelected.classList.toggle('cursor-not-allowed', selectedCount === 0);
-            deleteSelected.classList.toggle('opacity-50', selectedCount === 0);
+            bulkActionButtons.forEach((button) => {
+                button.disabled = selectedCount === 0;
+                button.classList.toggle('cursor-not-allowed', selectedCount === 0);
+                button.classList.toggle('opacity-50', selectedCount === 0);
+            });
         };
 
         selectAll.addEventListener('change', () => {
